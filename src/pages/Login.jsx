@@ -11,19 +11,24 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setError('');
         try {
             const response = await authApi.login({ email, password });
 
-            // Allow if ADMIN
-            if (response.user.role === 'ROLE_ADMIN') {
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
+            // Check if role is ADMIN or ROLE_ADMIN
+            if (response.role === 'ADMIN' || response.role === 'ROLE_ADMIN') {
+                localStorage.setItem('token', response.accessToken);
+                localStorage.setItem('user', JSON.stringify({
+                    id: response.userId,
+                    email: email,
+                    role: response.role
+                }));
                 navigate('/');
             } else {
-                setError('You do not have administrative privileges.');
+                setError('Bạn không có quyền truy cập trang quản trị.');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+            setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.');
         }
     };
 
