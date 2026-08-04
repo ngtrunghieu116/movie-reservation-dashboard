@@ -4,7 +4,8 @@ import {
     LayoutDashboard, 
     Tags, 
     Film, 
-    MonitorPlay, 
+    Building2, 
+    DoorClosed,
     Users, 
     LogOut,
     Menu,
@@ -27,10 +28,10 @@ const AdminLayout = () => {
 
     const navItems = [
         { path: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-        { path: '/genres', icon: <Tags size={20} />, label: 'Genres' },
-        { path: '/movies', icon: <Film size={20} />, label: 'Movies' },
-        { path: '/theaters', icon: <MonitorPlay size={20} />, label: 'Theaters' },
-        { path: '/users', icon: <Users size={20} />, label: 'Users' },
+        { path: '/genres', icon: <Tags size={20} />, label: 'Thể Loại' },
+        { path: '/movies', icon: <Film size={20} />, label: 'Phim Chiếu' },
+        { path: '/theaters', icon: <Building2 size={20} />, label: 'Cơ Sở Rạp' },
+        { path: '/users', icon: <Users size={20} />, label: 'Người Dùng' },
     ];
 
     return (
@@ -82,7 +83,7 @@ const AdminLayout = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input 
                                 type="text" 
-                                placeholder="Search..."
+                                placeholder="Tìm kiếm hệ thống..."
                                 className="pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all w-64"
                             />
                         </div>
