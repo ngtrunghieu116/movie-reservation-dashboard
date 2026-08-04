@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import GenreManagement from './pages/GenreManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
           </AdminProtectedRoute>
         }>
           <Route index element={<Dashboard />} />
-          <Route path="genres" element={<div>Genre Management (To do)</div>} />
+          <Route path="genres" element={<GenreManagement />} />
           <Route path="movies" element={<div>Movie Management (To do)</div>} />
           <Route path="theaters" element={<div>Theater Management (To do)</div>} />
           <Route path="users" element={<div>User Management (To do)</div>} />
