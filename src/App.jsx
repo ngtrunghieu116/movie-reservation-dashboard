@@ -24,7 +24,6 @@ function App() {
           <Route path="genres" element={<GenreManagement />} />
           <Route path="movies" element={<MovieManagement />} />
           <Route path="theaters" element={<TheaterManagement />} />
-          <Route path="rooms" element={<RoomManagement />} />
           <Route path="users" element={<div>User Management (To do)</div>} />
         </Route>
         

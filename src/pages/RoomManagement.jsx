@@ -4,7 +4,7 @@ import theaterApi from '../api/theaterApi';
 import Pagination from '../components/Pagination';
 import { Plus, Search, Edit, Trash2, DoorClosed, Filter, Building2, X } from 'lucide-react';
 
-const RoomManagement = () => {
+const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
     const [rooms, setRooms] = useState([]);
     const [theaters, setTheaters] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ const RoomManagement = () => {
     const [formData, setFormData] = useState({
         name: '',
         roomType: 'TWO_D',
-        theaterId: '',
+        theaterId: parentTheaterId || '',
         isActive: true
     });
     const [formError, setFormError] = useState('');
@@ -44,7 +44,7 @@ const RoomManagement = () => {
             const data = await theaterApi.getAll();
             const list = Array.isArray(data) ? data : (data.content || []);
             setTheaters(list);
-            if (list.length > 0 && !formData.theaterId) {
+            if (list.length > 0 && !formData.theaterId && !parentTheaterId) {
                 setFormData(prev => ({ ...prev, theaterId: list[0].id }));
             }
         } catch (err) {
@@ -59,7 +59,8 @@ const RoomManagement = () => {
                 page: pageNo,
                 size: pageSize
             };
-            if (theaterFilter) params.theaterId = theaterFilter;
+            if (parentTheaterId) params.theaterId = parentTheaterId;
+            else if (theaterFilter) params.theaterId = theaterFilter;
             if (search.trim()) params.search = search.trim();
 
             const data = await roomApi.getAll(params);
@@ -89,7 +90,7 @@ const RoomManagement = () => {
             setFormData({
                 name: room.name || '',
                 roomType: room.roomType || 'TWO_D',
-                theaterId: room.theaterId || (theaters[0]?.id || ''),
+                theaterId: room.theaterId || parentTheaterId || (theaters[0]?.id || ''),
                 isActive: room.isActive !== undefined ? room.isActive : true
             });
         } else {
@@ -98,7 +99,7 @@ const RoomManagement = () => {
             setFormData({
                 name: '',
                 roomType: 'TWO_D',
-                theaterId: theaters[0]?.id || '',
+                theaterId: parentTheaterId || theaters[0]?.id || '',
                 isActive: true
             });
         }
@@ -161,18 +162,22 @@ const RoomManagement = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className={parentTheaterId ? "space-y-4" : "space-y-6"}>
             {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white ${parentTheaterId ? '' : 'p-6 rounded-xl shadow-sm border border-gray-100'}`}>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <DoorClosed className="w-7 h-7 text-blue-600" /> Quản Lý Phòng Chiếu Phim
-                    </h1>
-                    <p className="text-sm text-gray-500 mt-1">Danh sách phòng chiếu, loại phòng (2D/3D/IMAX) theo từng cơ sở rạp</p>
+                    {!parentTheaterId && (
+                        <>
+                            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                <DoorClosed className="w-7 h-7 text-blue-600" /> Quản Lý Phòng Chiếu Phim
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">Danh sách phòng chiếu, loại phòng (2D/3D/IMAX) theo từng cơ sở rạp</p>
+                        </>
+                    )}
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95 ml-auto"
                 >
                     <Plus size={18} /> Thêm Phòng Mới
                 </button>
@@ -194,9 +199,10 @@ const RoomManagement = () => {
                     />
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Filter className="text-gray-400 w-4 h-4" />
-                    <span className="text-sm font-medium text-gray-600">Cơ sở Rạp:</span>
+                {!parentTheaterId && (
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <Filter className="text-gray-400 w-4 h-4" />
+                        <span className="text-sm font-medium text-gray-600">Cơ sở Rạp:</span>
                     <select
                         value={theaterFilter}
                         onChange={(e) => {
@@ -211,10 +217,11 @@ const RoomManagement = () => {
                         ))}
                     </select>
                 </div>
+                )}
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className={`bg-white ${parentTheaterId ? 'rounded-lg border border-gray-200' : 'rounded-xl shadow-sm border border-gray-100'} overflow-hidden`}>
                 {error && <div className="bg-red-50 text-red-600 p-4 m-4 rounded-lg text-sm">{error}</div>}
 
                 {loading ? (
@@ -331,8 +338,9 @@ const RoomManagement = () => {
                                 <select
                                     required
                                     value={formData.theaterId}
+                                    disabled={!!parentTheaterId}
                                     onChange={(e) => setFormData({ ...formData, theaterId: e.target.value })}
-                                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                                 >
                                     <option value="">-- Chọn Rạp Chiếu --</option>
                                     {theaters.map((t) => (

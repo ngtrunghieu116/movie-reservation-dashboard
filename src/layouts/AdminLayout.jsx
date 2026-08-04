@@ -31,7 +31,6 @@ const AdminLayout = () => {
         { path: '/genres', icon: <Tags size={20} />, label: 'Thể Loại' },
         { path: '/movies', icon: <Film size={20} />, label: 'Phim Chiếu' },
         { path: '/theaters', icon: <Building2 size={20} />, label: 'Cơ Sở Rạp' },
-        { path: '/rooms', icon: <DoorClosed size={20} />, label: 'Phòng Chiếu' },
         { path: '/users', icon: <Users size={20} />, label: 'Người Dùng' },
     ];
 

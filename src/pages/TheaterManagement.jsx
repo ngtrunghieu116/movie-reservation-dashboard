@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import theaterApi from '../api/theaterApi';
 import Pagination from '../components/Pagination';
-import { Plus, Search, Edit, Trash2, Building2, MapPin, Phone, Mail, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Building2, MapPin, Phone, Mail, X, DoorClosed } from 'lucide-react';
+import RoomManagement from './RoomManagement';
 
 const TheaterManagement = () => {
     const [theaters, setTheaters] = useState([]);
@@ -19,6 +20,7 @@ const TheaterManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [selectedTheaterForRooms, setSelectedTheaterForRooms] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -239,6 +241,13 @@ const TheaterManagement = () => {
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         <button
+                                                            onClick={() => setSelectedTheaterForRooms(t)}
+                                                            className="text-indigo-600 hover:text-indigo-800 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+                                                            title="Quản lý phòng chiếu"
+                                                        >
+                                                            <DoorClosed size={18} />
+                                                        </button>
+                                                        <button
                                                             onClick={() => handleOpenModal(t)}
                                                             className="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
                                                             title="Sửa cơ sở"
@@ -420,6 +429,32 @@ const TheaterManagement = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Room Management */}
+            {selectedTheaterForRooms && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-gray-50 rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-white shadow-sm z-10">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                    <DoorClosed className="w-6 h-6 text-indigo-600" />
+                                    Quản Lý Phòng Chiếu
+                                </h3>
+                                <p className="text-sm text-gray-500 mt-1">Cơ sở: <span className="font-semibold text-gray-700">{selectedTheaterForRooms.name}</span></p>
+                            </div>
+                            <button onClick={() => setSelectedTheaterForRooms(null)} className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <RoomManagement 
+                                parentTheaterId={selectedTheaterForRooms.id} 
+                                parentTheaterName={selectedTheaterForRooms.name} 
+                            />
+                        </div>
                     </div>
                 </div>
             )}
