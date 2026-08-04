@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import movieApi from '../api/movieApi';
 import genreApi from '../api/genreApi';
+import Pagination from '../components/Pagination';
 import { 
     Plus, 
     Search, 
@@ -21,9 +22,13 @@ const MovieManagement = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Filters
+    // Filters & Pagination
     const [searchTitle, setSearchTitle] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [pageNo, setPageNo] = useState(0);
+    const [pageSize, setPageSize] = useState(5);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     // Modal state
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,12 +63,12 @@ const MovieManagement = () => {
 
     useEffect(() => {
         fetchMovies();
-    }, [statusFilter, searchTitle]);
+    }, [statusFilter, searchTitle, pageNo, pageSize]);
 
     const fetchGenres = async () => {
         try {
             const data = await genreApi.getAll();
-            setGenres(data);
+            setGenres(Array.isArray(data) ? data : (data.content || []));
         } catch (err) {
             console.error('Failed to fetch genres:', err);
         }
@@ -72,12 +77,23 @@ const MovieManagement = () => {
     const fetchMovies = async () => {
         try {
             setLoading(true);
-            const params = {};
+            const params = {
+                page: pageNo,
+                size: pageSize
+            };
             if (statusFilter) params.status = statusFilter;
             if (searchTitle.trim()) params.search = searchTitle.trim();
 
             const data = await movieApi.getAll(params);
-            setMovies(data);
+            if (data && data.content !== undefined) {
+                setMovies(data.content);
+                setTotalElements(data.totalElements);
+                setTotalPages(data.totalPages);
+            } else {
+                setMovies(data);
+                setTotalElements(data.length);
+                setTotalPages(1);
+            }
             setError(null);
         } catch (err) {
             setError('Không thể tải danh sách phim. ' + (err.response?.data?.message || ''));
@@ -295,7 +311,10 @@ const MovieManagement = () => {
                         type="text"
                         placeholder="Tìm kiếm theo tên phim..."
                         value={searchTitle}
-                        onChange={(e) => setSearchTitle(e.target.value)}
+                        onChange={(e) => {
+                            setSearchTitle(e.target.value);
+                            setPageNo(0);
+                        }}
                         className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                     />
                 </div>
@@ -305,7 +324,10 @@ const MovieManagement = () => {
                     <span className="text-sm font-medium text-gray-600">Trạng thái:</span>
                     <select
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e) => {
+                            setStatusFilter(e.target.value);
+                            setPageNo(0);
+                        }}
                         className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     >
                         <option value="">Tất cả trạng thái</option>
@@ -329,122 +351,137 @@ const MovieManagement = () => {
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                    <th className="px-6 py-4">Poster</th>
-                                    <th className="px-6 py-4">Tên Phim</th>
-                                    <th className="px-6 py-4">Thể Loại</th>
-                                    <th className="px-6 py-4">Thời Lượng</th>
-                                    <th className="px-6 py-4">Khởi Chiếu</th>
-                                    <th className="px-6 py-4">Trạng Thái</th>
-                                    <th className="px-6 py-4">Đánh Giá</th>
-                                    <th className="px-6 py-4 text-right">Thao Tác</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100 text-sm">
-                                {movies.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="8" className="text-center py-12 text-gray-400">
-                                            Không tìm thấy bộ phim nào phù hợp.
-                                        </td>
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4">Poster</th>
+                                        <th className="px-6 py-4">Tên Phim</th>
+                                        <th className="px-6 py-4">Thể Loại</th>
+                                        <th className="px-6 py-4">Thời Lượng</th>
+                                        <th className="px-6 py-4">Khởi Chiếu</th>
+                                        <th className="px-6 py-4">Trạng Thái</th>
+                                        <th className="px-6 py-4">Đánh Giá</th>
+                                        <th className="px-6 py-4 text-right">Thao Tác</th>
                                     </tr>
-                                ) : (
-                                    movies.map((movie) => {
-                                        const posterUrl = movie.posterPath?.startsWith('http')
-                                            ? movie.posterPath
-                                            : `http://localhost:8080${movie.posterPath}`;
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 text-sm">
+                                    {movies.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="8" className="text-center py-12 text-gray-400">
+                                                Không tìm thấy bộ phim nào phù hợp.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        movies.map((movie) => {
+                                            const posterUrl = movie.posterPath?.startsWith('http')
+                                                ? movie.posterPath
+                                                : `http://localhost:8080${movie.posterPath}`;
 
-                                        return (
-                                            <tr key={movie.id} className="hover:bg-blue-50/30 transition-colors">
-                                                {/* 1. Poster */}
-                                                <td className="px-6 py-3">
-                                                    <img
-                                                        src={posterUrl}
-                                                        alt={movie.title}
-                                                        className="w-12 h-16 object-cover rounded-md shadow-sm border border-gray-200"
-                                                        onError={(e) => {
-                                                            e.target.src = 'https://via.placeholder.com/150x200?text=No+Poster';
-                                                        }}
-                                                    />
-                                                </td>
+                                            return (
+                                                <tr key={movie.id} className="hover:bg-blue-50/30 transition-colors">
+                                                    {/* 1. Poster */}
+                                                    <td className="px-6 py-3">
+                                                        <img
+                                                            src={posterUrl}
+                                                            alt={movie.title}
+                                                            className="w-12 h-16 object-cover rounded-md shadow-sm border border-gray-200"
+                                                            onError={(e) => {
+                                                                e.target.src = 'https://via.placeholder.com/150x200?text=No+Poster';
+                                                            }}
+                                                        />
+                                                    </td>
 
-                                                {/* 2. Tên Phim */}
-                                                <td className="px-6 py-3">
-                                                    <div className="font-semibold text-gray-900">{movie.title}</div>
-                                                    {movie.titleEn && (
-                                                        <div className="text-xs text-gray-500 italic mt-0.5">{movie.titleEn}</div>
-                                                    )}
-                                                    <div className="mt-1">{getAgeRatingBadge(movie.ageRating)}</div>
-                                                </td>
+                                                    {/* 2. Tên Phim */}
+                                                    <td className="px-6 py-3">
+                                                        <div className="font-semibold text-gray-900">{movie.title}</div>
+                                                        {movie.titleEn && (
+                                                            <div className="text-xs text-gray-500 italic mt-0.5">{movie.titleEn}</div>
+                                                        )}
+                                                        <div className="mt-1">{getAgeRatingBadge(movie.ageRating)}</div>
+                                                    </td>
 
-                                                {/* 3. Thể Loại */}
-                                                <td className="px-6 py-3">
-                                                    <div className="flex flex-wrap gap-1 max-w-xs">
-                                                        {movie.genres && movie.genres.map(g => (
-                                                            <span key={g.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                                                                {g.name}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </td>
+                                                    {/* 3. Thể Loại */}
+                                                    <td className="px-6 py-3">
+                                                        <div className="flex flex-wrap gap-1 max-w-xs">
+                                                            {movie.genres && movie.genres.map(g => (
+                                                                <span key={g.id} className="bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                                                                    {g.name}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
 
-                                                {/* 4. Thời Lượng */}
-                                                <td className="px-6 py-3 font-medium text-gray-700">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Clock size={14} className="text-gray-400" />
-                                                        {movie.duration} phút
-                                                    </div>
-                                                </td>
+                                                    {/* 4. Thời Lượng */}
+                                                    <td className="px-6 py-3 font-medium text-gray-700">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Clock size={14} className="text-gray-400" />
+                                                            {movie.duration} phút
+                                                        </div>
+                                                    </td>
 
-                                                {/* 5. Ngày Khởi Chiếu */}
-                                                <td className="px-6 py-3 text-gray-600">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Calendar size={14} className="text-gray-400" />
-                                                        {movie.releaseDate}
-                                                    </div>
-                                                </td>
+                                                    {/* 5. Ngày Khởi Chiếu */}
+                                                    <td className="px-6 py-3 text-gray-600">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Calendar size={14} className="text-gray-400" />
+                                                            {movie.releaseDate}
+                                                        </div>
+                                                    </td>
 
-                                                {/* 6. Trạng Thái */}
-                                                <td className="px-6 py-3">
-                                                    {getStatusBadge(movie.status)}
-                                                </td>
+                                                    {/* 6. Trạng Thái */}
+                                                    <td className="px-6 py-3">
+                                                        {getStatusBadge(movie.status)}
+                                                    </td>
 
-                                                {/* 7. Đánh Giá */}
-                                                <td className="px-6 py-3 font-semibold text-amber-600">
-                                                    <div className="flex items-center gap-1">
-                                                        <Star size={15} className="fill-amber-400 text-amber-400" />
-                                                        {movie.averageRating ? movie.averageRating.toFixed(1) : '5.0'}
-                                                    </div>
-                                                </td>
+                                                    {/* 7. Đánh Giá */}
+                                                    <td className="px-6 py-3 font-semibold text-amber-600">
+                                                        <div className="flex items-center gap-1">
+                                                            <Star size={15} className="fill-amber-400 text-amber-400" />
+                                                            {movie.averageRating ? movie.averageRating.toFixed(1) : '5.0'}
+                                                        </div>
+                                                    </td>
 
-                                                {/* 8. Thao Tác */}
-                                                <td className="px-6 py-3 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleOpenModal(movie)}
-                                                            className="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                                                            title="Sửa phim"
-                                                        >
-                                                            <Edit size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(movie.id, movie.title)}
-                                                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                                                            title="Xóa phim"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                                    {/* 8. Thao Tác */}
+                                                    <td className="px-6 py-3 text-right">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button
+                                                                onClick={() => handleOpenModal(movie)}
+                                                                className="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
+                                                                title="Sửa phim"
+                                                            >
+                                                                <Edit size={18} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(movie.id, movie.title)}
+                                                                className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                                                                title="Xóa phim"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* NiceAdmin Pagination */}
+                        <Pagination
+                            pageNo={pageNo}
+                            pageSize={pageSize}
+                            totalElements={totalElements}
+                            totalPages={totalPages}
+                            onPageChange={(newPage) => setPageNo(newPage)}
+                            onPageSizeChange={(newSize) => {
+                                setPageSize(newSize);
+                                setPageNo(0);
+                            }}
+                        />
+                    </>
                 )}
             </div>
 
