@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import GenreManagement from './pages/GenreManagement';
 import MovieManagement from './pages/MovieManagement';
+import TheaterManagement from './pages/TheaterManagement';
+import RoomManagement from './pages/RoomManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 function App() {
@@ -21,7 +23,8 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="genres" element={<GenreManagement />} />
           <Route path="movies" element={<MovieManagement />} />
-          <Route path="theaters" element={<div>Theater Management (To do)</div>} />
+          <Route path="theaters" element={<TheaterManagement />} />
+          <Route path="rooms" element={<RoomManagement />} />
           <Route path="users" element={<div>User Management (To do)</div>} />
         </Route>
         
