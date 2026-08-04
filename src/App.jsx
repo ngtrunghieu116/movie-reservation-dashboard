@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import GenreManagement from './pages/GenreManagement';
+import MovieManagement from './pages/MovieManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
         }>
           <Route index element={<Dashboard />} />
           <Route path="genres" element={<GenreManagement />} />
-          <Route path="movies" element={<div>Movie Management (To do)</div>} />
+          <Route path="movies" element={<MovieManagement />} />
           <Route path="theaters" element={<div>Theater Management (To do)</div>} />
           <Route path="users" element={<div>User Management (To do)</div>} />
         </Route>
