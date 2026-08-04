@@ -181,6 +181,7 @@ const TheaterManagement = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-gray-50/80 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <th className="px-6 py-4">ID</th>
                                         <th className="px-6 py-4">Tên Cơ Sở Rạp</th>
                                         <th className="px-6 py-4">Địa Chỉ</th>
                                         <th className="px-6 py-4">Khu Vực</th>
@@ -192,18 +193,16 @@ const TheaterManagement = () => {
                                 <tbody className="divide-y divide-gray-100 text-sm">
                                     {theaters.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="text-center py-12 text-gray-400">
+                                            <td colSpan="7" className="text-center py-12 text-gray-400">
                                                 Không tìm thấy cơ sở rạp nào phù hợp.
                                             </td>
                                         </tr>
                                     ) : (
                                         theaters.map((t) => (
                                             <tr key={t.id} className="hover:bg-blue-50/30 transition-colors">
+                                                <td className="px-6 py-4 font-semibold text-gray-500">#{t.id}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="font-semibold text-gray-900">{t.name}</div>
-                                                    {t.description && (
-                                                        <div className="text-xs text-gray-500 max-w-xs truncate mt-0.5">{t.description}</div>
-                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 text-gray-700">
                                                     <div className="flex items-center gap-1.5">
