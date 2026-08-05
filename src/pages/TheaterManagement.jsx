@@ -229,11 +229,11 @@ const TheaterManagement = () => {
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {t.isActive ? (
-                                                        <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+                                                        <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                                                             Hoạt động
                                                         </span>
                                                     ) : (
-                                                        <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">
+                                                        <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">
                                                             Tạm dừng
                                                         </span>
                                                     )}
