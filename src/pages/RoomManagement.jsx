@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import roomApi from '../api/roomApi';
 import theaterApi from '../api/theaterApi';
 import Pagination from '../components/Pagination';
-import { Plus, Search, Edit, Trash2, DoorClosed, Filter, Building2, X } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, DoorClosed, Filter, Building2, X, Armchair } from 'lucide-react';
+import SeatManagementModal from './SeatManagementModal';
 
 const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
     const [rooms, setRooms] = useState([]);
@@ -22,6 +23,7 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [selectedRoomForSeats, setSelectedRoomForSeats] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -147,17 +149,17 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
     const getRoomTypeBadge = (type) => {
         switch (type) {
             case 'TWO_D':
-                return <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200">2D</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded border border-blue-200">2D</span>;
             case 'THREE_D':
-                return <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded border border-purple-200">3D</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-0.5 rounded border border-purple-200">3D</span>;
             case 'FOUR_DX':
-                return <span className="bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-200">4DX</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-red-100 text-red-800 text-xs font-bold px-2.5 py-0.5 rounded border border-red-200">4DX</span>;
             case 'IMAX':
-                return <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded border border-amber-300">IMAX</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded border border-amber-300">IMAX</span>;
             case 'VIP_ROOM':
-                return <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded border border-emerald-200">VIP</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-0.5 rounded border border-emerald-200">VIP</span>;
             default:
-                return <span className="bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-0.5 rounded">{type}</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-gray-100 text-gray-700 text-xs font-bold px-2.5 py-0.5 rounded">{type}</span>;
         }
     };
 
@@ -256,24 +258,31 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
                                                 <td className="px-6 py-4 font-bold text-gray-900">{r.name}</td>
                                                 <td className="px-6 py-4">{getRoomTypeBadge(r.roomType)}</td>
                                                 <td className="px-6 py-4">
-                                                    <span className="flex items-center gap-1.5 text-blue-700 font-medium bg-blue-50 px-2.5 py-1 rounded-full text-xs border border-blue-100">
+                                                    <span className="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 text-blue-700 font-medium bg-blue-50 px-2.5 py-1 rounded-full text-xs border border-blue-100">
                                                         <Building2 size={13} />
                                                         {r.theaterName || 'N/A'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {r.isActive ? (
-                                                        <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
+                                                        <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">
                                                             Hoạt động
                                                         </span>
                                                     ) : (
-                                                        <span className="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">
+                                                        <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">
                                                             Tạm dừng
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => setSelectedRoomForSeats(r)}
+                                                            className="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-50 transition-colors"
+                                                            title="Sơ đồ ghế"
+                                                        >
+                                                            <Armchair size={18} />
+                                                        </button>
                                                         <button
                                                             onClick={() => handleOpenModal(r)}
                                                             className="text-blue-600 hover:text-blue-800 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
@@ -411,6 +420,15 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
                         </form>
                     </div>
                 </div>
+            )}
+
+            {/* Modal Quản Lý Sơ Đồ Ghế */}
+            {selectedRoomForSeats && (
+                <SeatManagementModal
+                    roomId={selectedRoomForSeats.id}
+                    roomName={selectedRoomForSeats.name}
+                    onClose={() => setSelectedRoomForSeats(null)}
+                />
             )}
         </div>
     );

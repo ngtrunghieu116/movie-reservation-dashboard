@@ -258,11 +258,11 @@ const MovieManagement = () => {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'NOW_SHOWING':
-                return <span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">Đang chiếu</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-emerald-200">Đang chiếu</span>;
             case 'COMING_SOON':
-                return <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-200">Sắp chiếu</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-200">Sắp chiếu</span>;
             case 'ENDED':
-                return <span className="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">Đã kết thúc</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-gray-200">Đã kết thúc</span>;
             default:
                 return null;
         }
@@ -271,15 +271,15 @@ const MovieManagement = () => {
     const getAgeRatingBadge = (rating) => {
         switch (rating) {
             case 'P':
-                return <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">P - Mọi độ tuổi</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">P - Mọi độ tuổi</span>;
             case 'T13':
-                return <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded border border-yellow-300">13+</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded border border-yellow-300">13+</span>;
             case 'T16':
-                return <span className="bg-orange-100 text-orange-800 text-xs font-bold px-2 py-0.5 rounded border border-orange-300">16+</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-orange-100 text-orange-800 text-xs font-bold px-2 py-0.5 rounded border border-orange-300">16+</span>;
             case 'T18':
-                return <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded border border-red-300">18+</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded border border-red-300">18+</span>;
             default:
-                return <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded">{rating}</span>;
+                return <span className="inline-flex items-center whitespace-nowrap shrink-0 bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded">{rating}</span>;
         }
     };
 
