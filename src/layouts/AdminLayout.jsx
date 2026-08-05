@@ -11,7 +11,8 @@ import {
     Menu,
     X,
     Bell,
-    Search
+    Search,
+    Calendar
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -31,6 +32,7 @@ const AdminLayout = () => {
         { path: '/genres', icon: <Tags size={20} />, label: 'Thể Loại' },
         { path: '/movies', icon: <Film size={20} />, label: 'Phim Chiếu' },
         { path: '/theaters', icon: <Building2 size={20} />, label: 'Cơ Sở Rạp' },
+        { path: '/showtimes', icon: <Calendar size={20} />, label: 'Lịch Chiếu' },
         { path: '/users', icon: <Users size={20} />, label: 'Người Dùng' },
     ];
 

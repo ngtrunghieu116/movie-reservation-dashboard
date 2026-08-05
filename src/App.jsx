@@ -7,11 +7,14 @@ import GenreManagement from './pages/GenreManagement';
 import MovieManagement from './pages/MovieManagement';
 import TheaterManagement from './pages/TheaterManagement';
 import RoomManagement from './pages/RoomManagement';
+import ShowtimeManagement from './pages/ShowtimeManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/login" element={<Login />} />
         
@@ -24,6 +27,7 @@ function App() {
           <Route path="genres" element={<GenreManagement />} />
           <Route path="movies" element={<MovieManagement />} />
           <Route path="theaters" element={<TheaterManagement />} />
+          <Route path="showtimes" element={<ShowtimeManagement />} />
           <Route path="users" element={<div>User Management (To do)</div>} />
         </Route>
         
