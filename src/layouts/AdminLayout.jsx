@@ -12,7 +12,8 @@ import {
     X,
     Bell,
     Search,
-    Calendar
+    Calendar,
+    Coffee
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -33,6 +34,7 @@ const AdminLayout = () => {
         { path: '/movies', icon: <Film size={20} />, label: 'Phim Chiếu' },
         { path: '/theaters', icon: <Building2 size={20} />, label: 'Cơ Sở Rạp' },
         { path: '/showtimes', icon: <Calendar size={20} />, label: 'Lịch Chiếu' },
+        { path: '/products', icon: <Coffee size={20} />, label: 'Bắp & Nước F&B' },
         { path: '/users', icon: <Users size={20} />, label: 'Người Dùng' },
     ];
 
