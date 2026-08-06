@@ -9,6 +9,7 @@ import TheaterManagement from './pages/TheaterManagement';
 import RoomManagement from './pages/RoomManagement';
 import ShowtimeManagement from './pages/ShowtimeManagement';
 import UserManagement from './pages/UserManagement';
+import ProductManagement from './pages/ProductManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="theaters" element={<TheaterManagement />} />
           <Route path="showtimes" element={<ShowtimeManagement />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="products" element={<ProductManagement />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />
