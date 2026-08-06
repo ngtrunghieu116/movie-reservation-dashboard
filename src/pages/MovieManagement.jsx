@@ -55,6 +55,8 @@ const MovieManagement = () => {
 
     const [posterFile, setPosterFile] = useState(null);
     const [posterPreview, setPosterPreview] = useState(null);
+    const [bannerFile, setBannerFile] = useState(null);
+    const [bannerPreview, setBannerPreview] = useState(null);
     const [formError, setFormError] = useState('');
 
     useEffect(() => {
@@ -105,6 +107,7 @@ const MovieManagement = () => {
     const handleOpenModal = (movie = null) => {
         setFormError('');
         setPosterFile(null);
+        setBannerFile(null);
 
         if (movie) {
             setIsEditing(true);
@@ -128,8 +131,13 @@ const MovieManagement = () => {
 
             const fullPosterUrl = movie.posterPath?.startsWith('http') 
                 ? movie.posterPath 
-                : `http://localhost:8080${movie.posterPath}`;
+                : movie.posterPath ? `http://localhost:8080${movie.posterPath}` : null;
             setPosterPreview(fullPosterUrl);
+
+            const fullBannerUrl = movie.bannerPath?.startsWith('http')
+                ? movie.bannerPath
+                : movie.bannerPath ? `http://localhost:8080${movie.bannerPath}` : null;
+            setBannerPreview(fullBannerUrl);
         } else {
             setIsEditing(false);
             setEditingId(null);
@@ -150,6 +158,7 @@ const MovieManagement = () => {
                 genreIds: genres.length > 0 ? [genres[0].id] : []
             });
             setPosterPreview(null);
+            setBannerPreview(null);
         }
         setIsModalOpen(true);
     };
@@ -159,6 +168,8 @@ const MovieManagement = () => {
         setFormError('');
         setPosterFile(null);
         setPosterPreview(null);
+        setBannerFile(null);
+        setBannerPreview(null);
     };
 
     const handleFileChange = (e) => {
@@ -176,6 +187,24 @@ const MovieManagement = () => {
             setFormError('');
             setPosterFile(file);
             setPosterPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleBannerFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                setFormError('Dung lượng ảnh banner không được vượt quá 5MB!');
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                setFormError('File đã chọn không phải là định dạng hình ảnh!');
+                return;
+            }
+
+            setFormError('');
+            setBannerFile(file);
+            setBannerPreview(URL.createObjectURL(file));
         }
     };
 
@@ -229,6 +258,10 @@ const MovieManagement = () => {
 
             if (posterFile) {
                 data.append('posterFile', posterFile);
+            }
+
+            if (bannerFile) {
+                data.append('bannerFile', bannerFile);
             }
 
             if (isEditing) {
@@ -715,17 +748,17 @@ const MovieManagement = () => {
                                 </div>
                             </div>
 
-                            {/* Poster Upload & Trailer URL */}
+                            {/* Poster & Banner Upload */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Ảnh Poster Tĩnh (Tối đa 5MB) {!isEditing && <span className="text-red-500">*</span>}
+                                        Ảnh Poster Phim (2:3) {!isEditing && <span className="text-red-500">*</span>}
                                     </label>
                                     <div className="flex items-center gap-4">
-                                        <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-4 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
-                                            <Upload className="w-6 h-6 text-blue-500 mb-1" />
+                                        <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
+                                            <Upload className="w-5 h-5 text-blue-500 mb-1" />
                                             <span className="text-xs text-gray-600 font-medium">
-                                                {posterFile ? posterFile.name : 'Nhấp để chọn ảnh poster'}
+                                                {posterFile ? posterFile.name : 'Chọn ảnh poster (2:3)'}
                                             </span>
                                             <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WEBP (Max 5MB)</span>
                                             <input
@@ -737,8 +770,8 @@ const MovieManagement = () => {
                                         </label>
 
                                         {posterPreview && (
-                                            <div className="relative w-16 h-20 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs">
-                                                <img src={posterPreview} alt="Preview" className="w-full h-full object-cover" />
+                                            <div className="relative w-14 h-20 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs">
+                                                <img src={posterPreview} alt="Poster Preview" className="w-full h-full object-cover" />
                                             </div>
                                         )}
                                     </div>
@@ -746,16 +779,44 @@ const MovieManagement = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Link Trailer YouTube
+                                        Ảnh Banner Ngang (16:9 - Hero/Carousel)
                                     </label>
-                                    <input
-                                        type="url"
-                                        className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                        value={formData.trailerUrl}
-                                        onChange={(e) => setFormData({ ...formData, trailerUrl: e.target.value })}
-                                        placeholder="https://www.youtube.com/watch?v=..."
-                                    />
+                                    <div className="flex items-center gap-4">
+                                        <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
+                                            <Upload className="w-5 h-5 text-purple-500 mb-1" />
+                                            <span className="text-xs text-gray-600 font-medium">
+                                                {bannerFile ? bannerFile.name : 'Chọn ảnh banner (16:9)'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WEBP (Max 5MB)</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleBannerFileChange}
+                                                className="hidden"
+                                            />
+                                        </label>
+
+                                        {bannerPreview && (
+                                            <div className="relative w-24 h-14 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs">
+                                                <img src={bannerPreview} alt="Banner Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* Trailer URL */}
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Link Trailer YouTube
+                                </label>
+                                <input
+                                    type="url"
+                                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value={formData.trailerUrl}
+                                    onChange={(e) => setFormData({ ...formData, trailerUrl: e.target.value })}
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                />
                             </div>
 
                             {/* Modal Footer */}
