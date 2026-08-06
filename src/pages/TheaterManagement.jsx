@@ -202,7 +202,7 @@ const TheaterManagement = () => {
                                     ) : (
                                         theaters.map((t) => (
                                             <tr key={t.id} className="hover:bg-blue-50/30 transition-colors">
-                                                <td className="px-6 py-4 font-semibold text-gray-500">#{t.id}</td>
+                                                <td className="px-6 py-4 font-semibold text-gray-500">{t.id}</td>
                                                 <td className="px-6 py-4">
                                                     <div className="font-semibold text-gray-900">{t.name}</div>
                                                 </td>
@@ -450,9 +450,9 @@ const TheaterManagement = () => {
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-6">
-                            <RoomManagement 
-                                parentTheaterId={selectedTheaterForRooms.id} 
-                                parentTheaterName={selectedTheaterForRooms.name} 
+                            <RoomManagement
+                                parentTheaterId={selectedTheaterForRooms.id}
+                                parentTheaterName={selectedTheaterForRooms.name}
                             />
                         </div>
                     </div>

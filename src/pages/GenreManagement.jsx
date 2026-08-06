@@ -155,7 +155,7 @@ const GenreManagement = () => {
                                     ) : (
                                         genres.map((genre) => (
                                             <tr key={genre.id} className="hover:bg-blue-50/30 transition-colors">
-                                                <td className="px-6 py-4 font-semibold text-gray-500">#{genre.id}</td>
+                                                <td className="px-6 py-4 font-semibold text-gray-500">{genre.id}</td>
                                                 <td className="px-6 py-4">
                                                     <span className="font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full text-xs border border-blue-100">
                                                         {genre.name}

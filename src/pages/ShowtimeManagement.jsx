@@ -18,7 +18,7 @@ const ShowtimeManagement = () => {
   const [filterRoom, setFilterRoom] = useState('');
   const [filterMovie, setFilterMovie] = useState('');
   const [filterDate, setFilterDate] = useState('');
-  
+
   // Pagination
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -27,7 +27,7 @@ const ShowtimeManagement = () => {
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShowtime, setEditingShowtime] = useState(null);
-  
+
   // Form State
   const [formData, setFormData] = useState({
     movieId: '',
@@ -38,7 +38,7 @@ const ShowtimeManagement = () => {
     priceVip: '',
     priceCouple: ''
   });
-  
+
   const [modalRooms, setModalRooms] = useState([]);
 
   const [fetchError, setFetchError] = useState(false);
@@ -84,7 +84,7 @@ const ShowtimeManagement = () => {
         } else if (selectedRoom.roomType === 'VIP') {
           defaultPrices = { standard: 150000, vip: 180000, couple: 250000 };
         }
-        
+
         setFormData(prev => ({
           ...prev,
           priceStandard: defaultPrices.standard,
@@ -137,7 +137,7 @@ const ShowtimeManagement = () => {
         params.fromDate = `${filterDate}T00:00:00`;
         params.toDate = `${filterDate}T23:59:59`;
       }
-      
+
       const res = await showtimeApi.searchShowtimes(params);
       setShowtimes(res.content || []);
       setTotalPages(res.totalPages || 1);
@@ -197,7 +197,7 @@ const ShowtimeManagement = () => {
         priceVip: Number(formData.priceVip),
         priceCouple: Number(formData.priceCouple)
       };
-      
+
       if (editingShowtime) {
         await showtimeApi.updateShowtime(editingShowtime.id, payload);
         toast.success('Cập nhật suất chiếu thành công');
@@ -299,8 +299,8 @@ const ShowtimeManagement = () => {
             onChange={(e) => setFilterDate(e.target.value)}
           />
         </div>
-        
-        <button 
+
+        <button
           onClick={() => {
             setFilterTheater(''); setFilterRoom(''); setFilterMovie(''); setFilterDate('');
           }}
@@ -315,6 +315,7 @@ const ShowtimeManagement = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phim</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cơ sở / Phòng</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Giờ chiếu</th>
@@ -337,7 +338,10 @@ const ShowtimeManagement = () => {
               <tr><td colSpan="6" className="text-center py-4 text-gray-500">Không có suất chiếu nào</td></tr>
             ) : (
               showtimes.map(st => (
-                <tr key={st.id}>
+                <tr key={st.id} className="hover:bg-blue-50/30 transition-colors">
+                  <td className="px-6 py-4 text-sm font-semibold text-gray-500">
+                    {st.id}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{st.movieTitle}</div>
                     <div className="text-xs text-gray-500">{st.movieDuration} phút</div>
@@ -380,7 +384,7 @@ const ShowtimeManagement = () => {
             )}
           </tbody>
         </table>
-        
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
@@ -413,7 +417,7 @@ const ShowtimeManagement = () => {
               <h3 className="text-lg font-medium">{editingShowtime ? 'Cập Nhật Suất Chiếu' : 'Thêm Suất Chiếu Mới'}</h3>
               <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-500">&times;</button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="p-6">
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="col-span-2">
