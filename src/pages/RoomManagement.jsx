@@ -205,20 +205,20 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <Filter className="text-gray-400 w-4 h-4" />
                         <span className="text-sm font-medium text-gray-600">Cơ sở Rạp:</span>
-                    <select
-                        value={theaterFilter}
-                        onChange={(e) => {
-                            setTheaterFilter(e.target.value);
-                            setPageNo(0);
-                        }}
-                        className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    >
-                        <option value="">Tất cả rạp/cơ sở</option>
-                        {theaters.map((t) => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
-                        ))}
-                    </select>
-                </div>
+                        <select
+                            value={theaterFilter}
+                            onChange={(e) => {
+                                setTheaterFilter(e.target.value);
+                                setPageNo(0);
+                            }}
+                            className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        >
+                            <option value="">Tất cả rạp/cơ sở</option>
+                            {theaters.map((t) => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 )}
             </div>
 
@@ -254,7 +254,7 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
                                     ) : (
                                         rooms.map((r) => (
                                             <tr key={r.id} className="hover:bg-blue-50/30 transition-colors">
-                                                <td className="px-6 py-4 font-semibold text-gray-500">#{r.id}</td>
+                                                <td className="px-6 py-4 font-semibold text-gray-500">{r.id}</td>
                                                 <td className="px-6 py-4 font-bold text-gray-900">{r.name}</td>
                                                 <td className="px-6 py-4">{getRoomTypeBadge(r.roomType)}</td>
                                                 <td className="px-6 py-4">
