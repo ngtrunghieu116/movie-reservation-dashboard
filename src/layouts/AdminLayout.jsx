@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
-    Tags, 
-    Film, 
-    Building2, 
-    DoorClosed,
-    Users, 
+import {
+    LayoutDashboard,
+    Tags,
+    Film,
+    Building2,
+    Users,
     LogOut,
     Menu,
     X,
@@ -39,78 +38,91 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="flex h-screen bg-gray-100">
+        <div className="flex h-screen bg-slate-100">
             {/* Sidebar */}
             <aside className={`bg-white w-64 shadow-lg flex flex-col transition-all duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full fixed z-20 h-full'}`}>
-                <div className="h-16 flex items-center justify-between px-4 border-b">
-                    <span className="text-xl font-bold text-blue-600 flex items-center gap-2">
-                        <Film className="w-6 h-6" /> CineMind
-                    </span>
+                {/* Logo Header */}
+                <div className="h-16 flex items-center justify-between px-6 border-b border-slate-200 bg-slate-900 text-white">
+                    <Link to="/" className="flex items-center gap-2.5 group">
+                        <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-bold text-white shadow-md shadow-red-600/30 group-hover:scale-105 transition-transform duration-200">
+                            <Film className="w-5.5 h-5.5 text-white" />
+                        </div>
+                        <span className="text-xl font-black tracking-wider text-white-900">
+                            CINE<span className="text-red-600">MIND</span>
+                        </span>
+                    </Link>
                     {!sidebarOpen && (
-                        <button onClick={() => setSidebarOpen(false)} className="md:hidden">
+                        <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-400 hover:text-white">
                             <X size={20} />
                         </button>
                     )}
                 </div>
-                
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                    {navItems.map((item) => (
-                        <Link 
-                            key={item.path} 
-                            to={item.path}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                                location.pathname === item.path 
-                                ? 'bg-blue-50 text-blue-600 font-medium' 
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                            }`}
-                        >
-                            {item.icon}
-                            {item.label}
-                        </Link>
-                    ))}
+                {/* Logo */}
+
+
+                {/* Navigation Links */}
+                <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-semibold ${isActive
+                                    ? 'bg-red-50 text-red-600 border border-red-200/80 shadow-xs'
+                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                    }`}
+                            >
+                                <span className={isActive ? 'text-red-600' : 'text-slate-400'}>
+                                    {item.icon}
+                                </span>
+                                {item.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </aside>
 
-            {/* Main Content */}
+            {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header */}
-                <header className="h-16 bg-white shadow-sm flex items-center justify-between px-4 z-10">
+                {/* Top Navbar */}
+                <header className="h-16 bg-white shadow-xs border-b border-slate-200 flex items-center justify-between px-6 z-10">
                     <div className="flex items-center gap-4">
-                        <button 
+                        <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                            className="text-slate-500 hover:text-slate-800 focus:outline-none p-1.5 rounded-lg hover:bg-slate-100 transition"
                         >
-                            <Menu size={24} />
+                            <Menu size={22} />
                         </button>
-                        
+
                         <div className="relative hidden md:block">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input 
-                                type="text" 
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                            <input
+                                type="text"
                                 placeholder="Tìm kiếm hệ thống..."
-                                className="pl-9 pr-4 py-2 bg-gray-100 border-transparent rounded-lg text-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all w-64"
+                                className="pl-9 pr-4 py-2 bg-slate-100 border-transparent rounded-xl text-sm focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all w-64"
                             />
                         </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button className="relative text-gray-500 hover:text-gray-700">
+                        <button className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
                             <Bell size={20} />
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
                         </button>
-                        
-                        <div className="flex items-center gap-3 pl-4 border-l">
+
+                        <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
                             <div className="flex flex-col items-end">
-                                <span className="text-sm font-medium text-gray-700">{user.firstName} {user.lastName}</span>
-                                <span className="text-xs text-gray-500">Admin</span>
+                                <span className="text-sm font-bold text-slate-800">{user.firstName || 'Quản lý'} {user.lastName || ''}</span>
+                                <span className="text-[11px] font-semibold bg-red-100 text-red-700 px-2 py-0.5 rounded-md">ADMIN</span>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                            <div className="w-9 h-9 rounded-xl bg-red-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-red-600/30">
                                 {user.firstName?.charAt(0) || 'A'}
                             </div>
-                            <button 
+                            <button
                                 onClick={handleLogout}
-                                className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                                title="Logout"
+                                className="ml-1 p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                title="Đăng xuất"
                             >
                                 <LogOut size={20} />
                             </button>
@@ -118,8 +130,8 @@ const AdminLayout = () => {
                     </div>
                 </header>
 
-                {/* Main scrollable area */}
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                {/* Main Scrollable View */}
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-100 p-6">
                     <Outlet />
                 </main>
             </div>
