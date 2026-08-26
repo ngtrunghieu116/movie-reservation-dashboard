@@ -98,11 +98,10 @@ const GenreManagement = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Quản Lý Thể Loại Phim</h1>
-                    <p className="text-sm text-gray-500 mt-1">Danh mục và các thể loại phim trong hệ thống</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
                 >
                     <Plus size={18} /> Thêm Thể Loại
                 </button>

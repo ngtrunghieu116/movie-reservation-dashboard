@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Film, Calendar, Building2, Coffee, Users, RefreshCw, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { Film, Calendar, Building2, Users, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 
 const Dashboard = () => {
@@ -16,17 +16,18 @@ const Dashboard = () => {
         const fetchDashboardStats = async () => {
             setIsLoading(true);
             try {
-                const [moviesRes, showtimesRes, theatersRes] = await Promise.allSettled([
+                const [moviesRes, showtimesRes, theatersRes, usersRes] = await Promise.allSettled([
                     axiosClient.get('/admin/movies?page=0&size=1'),
                     axiosClient.get('/admin/showtimes?page=0&size=1'),
-                    axiosClient.get('/admin/theaters?page=0&size=1')
+                    axiosClient.get('/admin/theaters?page=0&size=1'),
+                    axiosClient.get('/admin/users?page=0&size=1')
                 ]);
 
                 setStats({
-                    moviesCount: moviesRes.status === 'fulfilled' ? (moviesRes.value?.totalElements || moviesRes.value?.data?.totalElements || 0) : 0,
-                    showtimesCount: showtimesRes.status === 'fulfilled' ? (showtimesRes.value?.totalElements || showtimesRes.value?.data?.totalElements || 0) : 0,
-                    theatersCount: theatersRes.status === 'fulfilled' ? (theatersRes.value?.totalElements || theatersRes.value?.data?.totalElements || 0) : 0,
-                    usersCount: 12
+                    moviesCount: moviesRes.status === 'fulfilled' ? (moviesRes.value?.totalElements ?? moviesRes.value?.data?.totalElements ?? 0) : 0,
+                    showtimesCount: showtimesRes.status === 'fulfilled' ? (showtimesRes.value?.totalElements ?? showtimesRes.value?.data?.totalElements ?? 0) : 0,
+                    theatersCount: theatersRes.status === 'fulfilled' ? (theatersRes.value?.totalElements ?? theatersRes.value?.data?.totalElements ?? 0) : 0,
+                    usersCount: usersRes.status === 'fulfilled' ? (usersRes.value?.totalElements ?? usersRes.value?.data?.totalElements ?? 0) : 0
                 });
             } catch (err) {
                 console.error('Failed to load dashboard stats:', err);

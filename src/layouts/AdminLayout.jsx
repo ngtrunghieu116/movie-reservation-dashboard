@@ -95,14 +95,6 @@ const AdminLayout = () => {
                             <Menu size={22} />
                         </button>
 
-                        <div className="relative hidden md:block">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder="Tìm kiếm hệ thống..."
-                                className="pl-9 pr-4 py-2 bg-slate-100 border-transparent rounded-xl text-sm focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all w-64"
-                            />
-                        </div>
                     </div>
 
                     <div className="flex items-center gap-4">

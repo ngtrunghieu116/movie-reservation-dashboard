@@ -179,7 +179,7 @@ const RoomManagement = ({ parentTheaterId, parentTheaterName }) => {
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95 ml-auto"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
                 >
                     <Plus size={18} /> Thêm Phòng Mới
                 </button>

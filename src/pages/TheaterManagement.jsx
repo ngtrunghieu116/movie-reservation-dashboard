@@ -83,12 +83,12 @@ const TheaterManagement = () => {
             setIsEditing(false);
             setEditingId(null);
             setFormData({
-                name: 'Trung Tâm Chiếu Phim Quốc Gia - Cơ Sở ',
+                name: 'Trung Tâm Chiếu Phim ABC ',
                 address: '87 Láng Hạ',
                 city: 'Hà Nội',
                 district: 'Ba Đình',
                 phone: '02435141791',
-                email: 'contact@chieuphimquocgia.com.vn',
+                email: 'contact@chieuphimABC.com.vn',
                 description: '',
                 isActive: true
             });
@@ -140,13 +140,12 @@ const TheaterManagement = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Building2 className="w-7 h-7 text-blue-600" /> Quản Lý Cơ Sở Rạp Chiếu Phim (NCC)
+                        Quản Lý Cơ Sở Rạp
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">Danh sách các cơ sở và cụm rạp phim thuộc hệ thống Trung tâm Chiếu phim Quốc Gia</p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
                 >
                     <Plus size={18} /> Thêm Cơ Sở Mới
                 </button>
@@ -349,7 +348,7 @@ const TheaterManagement = () => {
 
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Quận / Huyện <span className="text-red-500">*</span>
+                                        Phường <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -357,7 +356,7 @@ const TheaterManagement = () => {
                                         className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                         value={formData.district}
                                         onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                                        placeholder="Ví dụ: Ba Đình"
+                                        placeholder="Ví dụ: Nghĩa Đô"
                                     />
                                 </div>
                             </div>

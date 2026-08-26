@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import movieApi from '../api/movieApi';
 import genreApi from '../api/genreApi';
 import Pagination from '../components/Pagination';
-import { 
-    Plus, 
-    Search, 
-    Edit, 
-    Trash2, 
-    Star, 
-    Film, 
-    Calendar, 
-    Clock, 
-    X, 
+import {
+    Plus,
+    Search,
+    Edit,
+    Trash2,
+    Star,
+    Film,
+    Calendar,
+    Clock,
+    X,
     Upload,
     Filter
 } from 'lucide-react';
@@ -129,8 +129,8 @@ const MovieManagement = () => {
                 genreIds: movie.genres ? movie.genres.map(g => g.id) : []
             });
 
-            const fullPosterUrl = movie.posterPath?.startsWith('http') 
-                ? movie.posterPath 
+            const fullPosterUrl = movie.posterPath?.startsWith('http')
+                ? movie.posterPath
                 : movie.posterPath ? `http://localhost:8080${movie.posterPath}` : null;
             setPosterPreview(fullPosterUrl);
 
@@ -230,7 +230,7 @@ const MovieManagement = () => {
         }
 
         if (new Date(formData.releaseDate) > new Date(formData.endDate)) {
-            setFormError('Lỗi logic ngày: Ngày khởi chiếu không được diễn ra sau ngày kết thúc!');
+            setFormError('Ngày khởi chiếu không được diễn ra sau ngày kết thúc!');
             return;
         }
 
@@ -251,7 +251,7 @@ const MovieManagement = () => {
 
         try {
             const data = new FormData();
-            
+
             // Append movie JSON blob
             const movieBlob = new Blob([JSON.stringify(formData)], { type: 'application/json' });
             data.append('movie', movieBlob);
@@ -322,15 +322,12 @@ const MovieManagement = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Film className="w-7 h-7 text-blue-600" /> Quản Lý Danh Sách Phim
+                        Quản Lý Danh Sách Phim
                     </h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Thêm mới, cập nhật danh sách phim, lịch chiếu và ảnh đại diện
-                    </p>
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
                 >
                     <Plus size={18} /> Thêm Phim Mới
                 </button>
@@ -734,11 +731,10 @@ const MovieManagement = () => {
                                                 type="button"
                                                 key={g.id}
                                                 onClick={() => handleGenreToggle(g.id)}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                                                    isSelected
-                                                        ? 'bg-blue-600 text-white shadow-xs'
-                                                        : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
-                                                }`}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${isSelected
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                                                    }`}
                                             >
                                                 {isSelected && <span>✓</span>}
                                                 {g.name}

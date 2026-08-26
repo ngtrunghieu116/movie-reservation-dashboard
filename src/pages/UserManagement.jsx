@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Pencil, KeyRound, Trash2 } from 'lucide-react';
+import { Pencil, KeyRound, Trash2, Search, Filter, RotateCcw, X, UserCheck, Users } from 'lucide-react';
 import userApi from '../api/userApi';
+import Pagination from '../components/Pagination';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -16,8 +17,9 @@ const UserManagement = () => {
 
   // Pagination
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const size = 10;
+  const [totalElements, setTotalElements] = useState(0);
 
   // Modals
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -40,19 +42,14 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [filterRole, filterStatus, page]);
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setPage(0);
-    fetchUsers();
-  };
+  }, [search, filterRole, filterStatus, page, pageSize]);
 
   const fetchUsers = async () => {
+
     setLoading(true);
     setFetchError(false);
     try {
-      const params = { page, size };
+      const params = { page, size: pageSize };
       if (search.trim()) params.search = search.trim();
       if (filterRole) params.role = filterRole;
       if (filterStatus) params.status = filterStatus;
@@ -60,6 +57,7 @@ const UserManagement = () => {
       const res = await userApi.getUsers(params);
       setUsers(res.content || []);
       setTotalPages(res.totalPages || 1);
+      setTotalElements(res.totalElements || 0);
     } catch (err) {
       setFetchError(true);
       toast.error('Lỗi khi tải danh sách người dùng');
@@ -109,7 +107,7 @@ const UserManagement = () => {
     if (!selectedUser) return;
     try {
       await userApi.updateUser(selectedUser.id, formData);
-      toast.success('Cập nhật thông tin người dùng thành công');
+      toast.success('Cập nhật thông tin người dùng thành công!');
       handleCloseEditModal();
       fetchUsers();
     } catch (err) {
@@ -145,7 +143,7 @@ const UserManagement = () => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
     try {
       await userApi.deleteUser(id);
-      toast.success('Xóa người dùng thành công');
+      toast.success('Xóa người dùng thành công!');
       fetchUsers();
     } catch (err) {
       if (err.response?.data?.message) {
@@ -156,261 +154,291 @@ const UserManagement = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilterRole('');
+    setFilterStatus('');
+    setPage(0);
+  };
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Quản Lý Người Dùng</h1>
-      </div>
-
-      {/* Header & Filters Bar */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap gap-3 items-center justify-between">
-        <form onSubmit={handleSearchSubmit} className="flex gap-2 items-center">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Tìm theo tên, email, SĐT..."
-              className="w-64 border border-gray-300 rounded-md py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm hover:bg-blue-700 transition"
-          >
-            Tìm kiếm
-          </button>
-        </form>
-
-        <div className="flex gap-3 items-center flex-wrap">
-          <div className="flex items-center gap-1.5 text-sm">
-            <span className="text-gray-500 text-xs font-semibold uppercase">Vai trò:</span>
-            <select
-              className="border border-gray-300 rounded-md py-1.5 px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterRole}
-              onChange={(e) => { setFilterRole(e.target.value); setPage(0); }}
-            >
-              <option value="">Tất cả</option>
-              <option value="USER">USER</option>
-              <option value="ADMIN">ADMIN</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-sm">
-            <span className="text-gray-500 text-xs font-semibold uppercase">Trạng thái:</span>
-            <select
-              className="border border-gray-300 rounded-md py-1.5 px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filterStatus}
-              onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
-            >
-              <option value="">Tất cả</option>
-              <option value="ACTIVE">HOẠT ĐỘNG</option>
-              <option value="BLOCKED">ĐÃ KHÓA</option>
-            </select>
-          </div>
-
-          {(search || filterRole || filterStatus) && (
-            <button
-              onClick={() => {
-                setSearch('');
-                setFilterRole('');
-                setFilterStatus('');
-                setPage(0);
-              }}
-              className="text-red-500 hover:text-red-700 text-xs font-medium underline"
-            >
-              Xóa bộ lọc
-            </button>
-          )}
+    <div className="space-y-6">
+      {/* Header Banner Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Quản Lý Người Dùng</h1>
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Họ & Tên</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số điện thoại</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vai trò</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr><td colSpan="8" className="text-center py-4">Đang tải...</td></tr>
-            ) : fetchError ? (
-              <tr>
-                <td colSpan="8" className="text-center py-8">
-                  <p className="text-red-500 mb-2">Không thể lấy dữ liệu người dùng</p>
-                  <button onClick={fetchUsers} className="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition">Thử lại</button>
-                </td>
+      {/* Filter & Search Bar */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider w-full mb-1">
+          <Filter size={14} /> Bộ Lọc Tìm Kiếm
+        </div>
+
+        {/* Search Box */}
+        <div className="flex-1 min-w-[240px]">
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+            Tìm kiếm
+          </label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Tìm theo tên, email, SĐT..."
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
+            />
+          </div>
+        </div>
+
+
+        {/* Role Filter */}
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+            Vai trò
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+            value={filterRole}
+            onChange={(e) => { setFilterRole(e.target.value); setPage(0); }}
+          >
+            <option value="">-- Tất cả vai trò --</option>
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+            Trạng thái
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+            value={filterStatus}
+            onChange={(e) => { setFilterStatus(e.target.value); setPage(0); }}
+          >
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="ACTIVE">HOẠT ĐỘNG</option>
+            <option value="BLOCKED">ĐÃ KHÓA</option>
+          </select>
+        </div>
+
+        {/* Clear Filters */}
+        {(search || filterRole || filterStatus) && (
+          <button
+            onClick={handleClearFilters}
+            className="px-3.5 py-2 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <RotateCcw size={14} /> Xóa bộ lọc
+          </button>
+        )}
+      </div>
+
+      {/* Table Card */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-100">
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Họ & Tên</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Số Điện Thoại</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Vai Trò</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng Thái</th>
+                <th className="px-6 py-3.5 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ngày Tạo</th>
+                <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Thao Tác</th>
               </tr>
-            ) : users.length === 0 ? (
-              <tr><td colSpan="8" className="text-center py-4 text-gray-500">Không tìm thấy người dùng nào</td></tr>
-            ) : (
-              users.map(u => (
-                <tr key={u.id} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-500">
-                    {u.id}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {u.lastName} {u.firstName}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {u.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700 font-mono">
-                    {u.phone || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 text-xs font-bold rounded ${u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 text-xs font-bold rounded ${u.status === 'BLOCKED' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                      {u.status === 'BLOCKED' ? 'ĐÃ KHÓA' : 'HOẠT ĐỘNG'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {u.createdAt ? format(new Date(u.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenEditModal(u)}
-                        className="p-1.5 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 rounded-md transition"
-                        title="Sửa thông tin"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleOpenResetPasswordModal(u)}
-                        className="p-1.5 text-amber-600 hover:text-amber-900 hover:bg-amber-50 rounded-md transition"
-                        title="Đổi mật khẩu"
-                      >
-                        <KeyRound size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(u.id)}
-                        className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition"
-                        title="Xóa người dùng"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-sm">
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-10 text-gray-500 font-medium">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      Đang tải danh sách người dùng...
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : fetchError ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-10">
+                    <p className="text-red-500 font-medium mb-2">Không thể lấy dữ liệu người dùng</p>
+                    <button
+                      onClick={fetchUsers}
+                      className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-all font-medium text-xs"
+                    >
+                      Thử lại
+                    </button>
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-12 text-gray-400 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Users className="w-10 h-10 text-gray-300 stroke-1" />
+                      <p className="text-sm font-medium">Không tìm thấy người dùng nào</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                users.map(u => (
+                  <tr key={u.id} className="hover:bg-blue-50/30 transition-colors duration-150">
+                    <td className="px-6 py-4 font-semibold text-gray-400 text-xs">
+                      #{u.id}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-gray-800">
+                      {u.lastName} {u.firstName}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600 font-medium">
+                      {u.email}
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 font-mono text-xs">
+                      {u.phone || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${u.role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+                        {u.role}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${u.status === 'BLOCKED' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                        {u.status === 'BLOCKED' ? '● Đã khóa' : '● Hoạt động'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500 text-xs">
+                      {u.createdAt ? format(new Date(u.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenEditModal(u)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                          title="Sửa thông tin"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleOpenResetPasswordModal(u)}
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-all cursor-pointer"
+                          title="Đổi mật khẩu"
+                        >
+                          <KeyRound size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(u.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                          title="Xóa người dùng"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-6 py-3 flex items-center justify-between border-t border-gray-200">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage(p => p - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Trước
-            </button>
-            <span className="text-sm text-gray-700">
-              Trang {page + 1} / {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages - 1}
-              onClick={() => setPage(p => p + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              Sau
-            </button>
-          </div>
-        )}
+        {/* Standardized Pagination */}
+        <Pagination
+          pageNo={page}
+          pageSize={pageSize}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => { setPageSize(newSize); setPage(0); }}
+        />
       </div>
 
       {/* Edit User Modal */}
       {isEditModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium">Cập Nhật Thông Tin Người Dùng</h3>
-              <button onClick={handleCloseEditModal} className="text-gray-400 hover:text-gray-500">&times;</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100">
+            <div className="px-6 py-4 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-red-600" />
+                Cập Nhật Thông Tin Người Dùng
+              </h3>
+              <button onClick={handleCloseEditModal} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                <X size={20} />
+              </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6">
-              <div className="mb-4">
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+              <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Email (Không thể sửa)</label>
                 <input
                   type="text"
                   disabled
-                  className="w-full border rounded-md p-2 bg-gray-100 text-gray-600"
+                  className="w-full px-3.5 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500 font-medium"
                   value={selectedUser.email}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Họ *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Họ <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="lastName"
                     required
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     value={formData.lastName}
                     onChange={handleEditChange}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tên *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Tên <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="firstName"
                     required
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     value={formData.firstName}
                     onChange={handleEditChange}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Số điện thoại <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="phone"
                     required
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     value={formData.phone}
                     onChange={handleEditChange}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Ngày sinh *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Ngày sinh <span className="text-red-500">*</span></label>
                   <input
                     type="date"
                     name="dateOfBirth"
                     required
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                     value={formData.dateOfBirth}
                     onChange={handleEditChange}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Giới tính *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Giới tính <span className="text-red-500">*</span></label>
                   <select
                     name="gender"
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
                     value={formData.gender}
                     onChange={handleEditChange}
                   >
@@ -420,10 +448,10 @@ const UserManagement = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vai trò *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Vai trò <span className="text-red-500">*</span></label>
                   <select
                     name="role"
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
                     value={formData.role}
                     onChange={handleEditChange}
                   >
@@ -432,10 +460,10 @@ const UserManagement = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Trạng thái <span className="text-red-500">*</span></label>
                   <select
                     name="status"
-                    className="w-full border rounded-md p-2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
                     value={formData.status}
                     onChange={handleEditChange}
                   >
@@ -445,19 +473,19 @@ const UserManagement = () => {
                 </div>
               </div>
 
-              <div className="mt-5 flex justify-end gap-3">
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={handleCloseEditModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg text-sm hover:bg-gray-50 transition-all cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
                 >
-                  Cập nhật
+                  Cập Nhật
                 </button>
               </div>
             </form>
@@ -467,44 +495,49 @@ const UserManagement = () => {
 
       {/* Reset Password Modal */}
       {isResetPasswordModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-medium">Đổi Mật Khẩu Người Dùng</h3>
-              <button onClick={handleCloseResetPasswordModal} className="text-gray-400 hover:text-gray-500">&times;</button>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div className="px-6 py-4 bg-gray-50/80 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-amber-600" />
+                Đổi Mật Khẩu Người Dùng
+              </h3>
+              <button onClick={handleCloseResetPasswordModal} className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all">
+                <X size={20} />
+              </button>
             </div>
 
-            <form onSubmit={handleResetPasswordSubmit} className="p-6">
-              <p className="text-sm text-gray-600 mb-4">
-                Thay đổi mật khẩu trực tiếp cho tài khoản: <strong className="text-gray-900">{selectedUser.email}</strong>
+            <form onSubmit={handleResetPasswordSubmit} className="p-6 space-y-4">
+              <p className="text-xs text-gray-600 bg-amber-50 border border-amber-200 p-3 rounded-lg">
+                Thay đổi mật khẩu trực tiếp cho tài khoản: <strong className="text-gray-900 font-bold">{selectedUser.email}</strong>
               </p>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu mới *</label>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Mật khẩu mới <span className="text-red-500">*</span></label>
                 <input
                   type="password"
                   required
                   minLength={6}
                   placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)..."
-                  className="w-full border rounded-md p-2"
+                  className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
 
-              <div className="mt-5 flex justify-end gap-3">
+              <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={handleCloseResetPasswordModal}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg text-sm hover:bg-gray-50 transition-all cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700"
+                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
                 >
-                  Đổi mật khẩu
+                  Đổi Mật Khẩu
                 </button>
               </div>
             </form>
