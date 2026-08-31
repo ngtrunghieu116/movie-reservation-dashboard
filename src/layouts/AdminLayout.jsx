@@ -12,7 +12,8 @@ import {
     Bell,
     Search,
     Calendar,
-    Coffee
+    Coffee,
+    Ticket
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -29,6 +30,7 @@ const AdminLayout = () => {
 
     const navItems = [
         { path: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+        { path: '/bookings', icon: <Ticket size={20} />, label: 'Quản Lý Đặt Vé' },
         { path: '/genres', icon: <Tags size={20} />, label: 'Thể Loại' },
         { path: '/movies', icon: <Film size={20} />, label: 'Phim Chiếu' },
         { path: '/theaters', icon: <Building2 size={20} />, label: 'Cơ Sở Rạp' },

@@ -10,6 +10,7 @@ import RoomManagement from './pages/RoomManagement';
 import ShowtimeManagement from './pages/ShowtimeManagement';
 import UserManagement from './pages/UserManagement';
 import ProductManagement from './pages/ProductManagement';
+import BookingManagement from './pages/BookingManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
@@ -26,6 +27,7 @@ function App() {
           </AdminProtectedRoute>
         }>
           <Route index element={<Dashboard />} />
+          <Route path="bookings" element={<BookingManagement />} />
           <Route path="genres" element={<GenreManagement />} />
           <Route path="movies" element={<MovieManagement />} />
           <Route path="theaters" element={<TheaterManagement />} />
