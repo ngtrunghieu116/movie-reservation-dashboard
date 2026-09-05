@@ -2,16 +2,18 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Pagination = ({
-    pageNo,
-    pageSize,
-    totalElements,
-    totalPages,
+    pageNo: propPageNo,
+    currentPage,
+    pageSize = 10,
+    totalElements = 0,
+    totalPages = 1,
     onPageChange,
     onPageSizeChange
 }) => {
+    const pageNo = propPageNo ?? currentPage ?? 0;
     if (totalElements === 0) return null;
 
-    const startElement = pageNo * pageSize + 1;
+    const startElement = Math.max(1, pageNo * pageSize + 1);
     const endElement = Math.min((pageNo + 1) * pageSize, totalElements);
 
     const getPageNumbers = () => {

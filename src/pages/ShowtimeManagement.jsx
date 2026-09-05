@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 import showtimeApi from '../api/showtimeApi';
+import crawlerApi from '../api/crawlerApi';
 import theaterApi from '../api/theaterApi';
 import roomApi from '../api/roomApi';
 import movieApi from '../api/movieApi';
@@ -29,6 +30,7 @@ const ShowtimeManagement = () => {
   const [rooms, setRooms] = useState([]);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [crawling, setCrawling] = useState(false);
 
   // Filters
   const [filterTheater, setFilterTheater] = useState('');
@@ -255,6 +257,23 @@ const ShowtimeManagement = () => {
     setPage(0);
   };
 
+  const handleCrawlShowtimes = async () => {
+    try {
+      setCrawling(true);
+      toast.loading('Đang cào suất chiếu thực tế từ NCC qua Python Crawler...', { id: 'crawl-showtimes' });
+      const res = await crawlerApi.crawlShowtimes();
+      toast.success(
+        `Crawl hoàn tất: ${res.inserted || 0} suất mới, ${res.updated || 0} cập nhật!`,
+        { id: 'crawl-showtimes', duration: 4000 }
+      );
+      fetchShowtimes();
+    } catch (err) {
+      toast.error('Có lỗi xảy ra khi crawl suất chiếu từ Python service!', { id: 'crawl-showtimes' });
+    } finally {
+      setCrawling(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner Section */}
@@ -267,12 +286,22 @@ const ShowtimeManagement = () => {
             Quản lý lịch chiếu phim, thời gian chiếu và giá vé theo từng cơ sở rạp
           </p>
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
-        >
-          <Plus size={18} /> Thêm Suất Chiếu
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleCrawlShowtimes}
+            disabled={crawling}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+          >
+            <RotateCcw size={18} className={crawling ? "animate-spin" : ""} />
+            {crawling ? 'Đang cào...' : 'Crawl Suất Chiếu NCC'}
+          </button>
+          <button
+            onClick={() => handleOpenModal()}
+            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 transition-all shadow-sm active:scale-95"
+          >
+            <Plus size={18} /> Thêm Suất Chiếu
+          </button>
+        </div>
       </div>
 
       {/* Filter Section */}
