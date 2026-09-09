@@ -13,7 +13,9 @@ import {
     Clock,
     X,
     Upload,
-    Filter
+    Filter,
+    Link as LinkIcon,
+    Image as ImageIcon
 } from 'lucide-react';
 
 const MovieManagement = () => {
@@ -53,11 +55,25 @@ const MovieManagement = () => {
         genreIds: []
     });
 
+    // Image source mode: 'FILE' or 'URL'
+    const [posterMode, setPosterMode] = useState('FILE'); // 'FILE' | 'URL'
     const [posterFile, setPosterFile] = useState(null);
+    const [posterUrl, setPosterUrl] = useState('');
     const [posterPreview, setPosterPreview] = useState(null);
+
+    const [bannerMode, setBannerMode] = useState('FILE'); // 'FILE' | 'URL'
     const [bannerFile, setBannerFile] = useState(null);
+    const [bannerUrl, setBannerUrl] = useState('');
     const [bannerPreview, setBannerPreview] = useState(null);
     const [formError, setFormError] = useState('');
+
+    const PLACEHOLDER_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='160' viewBox='0 0 120 160'%3E%3Crect width='100%25' height='100%25' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%2394a3b8'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+    const getFullImageUrl = (path) => {
+        if (!path) return PLACEHOLDER_POSTER;
+        if (path.startsWith('http://') || path.startsWith('https://')) return path;
+        return `http://localhost:8080${path}`;
+    };
 
     useEffect(() => {
         fetchGenres();
@@ -129,15 +145,29 @@ const MovieManagement = () => {
                 genreIds: movie.genres ? movie.genres.map(g => g.id) : []
             });
 
-            const fullPosterUrl = movie.posterPath?.startsWith('http')
-                ? movie.posterPath
-                : movie.posterPath ? `http://localhost:8080${movie.posterPath}` : null;
-            setPosterPreview(fullPosterUrl);
+            // Set poster source mode and preview
+            const isPosterHttp = movie.posterPath?.startsWith('http');
+            if (isPosterHttp) {
+                setPosterMode('URL');
+                setPosterUrl(movie.posterPath);
+                setPosterPreview(movie.posterPath);
+            } else {
+                setPosterMode('FILE');
+                setPosterUrl('');
+                setPosterPreview(movie.posterPath ? `http://localhost:8080${movie.posterPath}` : null);
+            }
 
-            const fullBannerUrl = movie.bannerPath?.startsWith('http')
-                ? movie.bannerPath
-                : movie.bannerPath ? `http://localhost:8080${movie.bannerPath}` : null;
-            setBannerPreview(fullBannerUrl);
+            // Set banner source mode and preview
+            const isBannerHttp = movie.bannerPath?.startsWith('http');
+            if (isBannerHttp) {
+                setBannerMode('URL');
+                setBannerUrl(movie.bannerPath);
+                setBannerPreview(movie.bannerPath);
+            } else {
+                setBannerMode('FILE');
+                setBannerUrl('');
+                setBannerPreview(movie.bannerPath ? `http://localhost:8080${movie.bannerPath}` : null);
+            }
         } else {
             setIsEditing(false);
             setEditingId(null);
@@ -157,7 +187,11 @@ const MovieManagement = () => {
                 status: 'NOW_SHOWING',
                 genreIds: genres.length > 0 ? [genres[0].id] : []
             });
+            setPosterMode('FILE');
+            setPosterUrl('');
             setPosterPreview(null);
+            setBannerMode('FILE');
+            setBannerUrl('');
             setBannerPreview(null);
         }
         setIsModalOpen(true);
@@ -167,20 +201,22 @@ const MovieManagement = () => {
         setIsModalOpen(false);
         setFormError('');
         setPosterFile(null);
+        setPosterUrl('');
         setPosterPreview(null);
         setBannerFile(null);
+        setBannerUrl('');
         setBannerPreview(null);
     };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                setFormError('Dung lượng ảnh poster không được vượt quá 5MB!');
+            if (file.size > 10 * 1024 * 1024) {
+                setFormError('Dung lượng ảnh poster không được vượt quá 10MB!');
                 return;
             }
-            if (!file.type.startsWith('image/')) {
-                setFormError('File đã chọn không phải là định dạng hình ảnh!');
+            if (!file.type.startsWith('image/') && !file.name.match(/\.(jpe?g|png|webp|gif|avif|svg|bmp|ico|heic|heif|jfif)$/i)) {
+                setFormError('File đã chọn không phải là định dạng hình ảnh hợp lệ!');
                 return;
             }
 
@@ -190,15 +226,21 @@ const MovieManagement = () => {
         }
     };
 
+    const handlePosterUrlChange = (e) => {
+        const url = e.target.value;
+        setPosterUrl(url);
+        setPosterPreview(url.trim() || null);
+    };
+
     const handleBannerFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                setFormError('Dung lượng ảnh banner không được vượt quá 5MB!');
+            if (file.size > 10 * 1024 * 1024) {
+                setFormError('Dung lượng ảnh banner không được vượt quá 10MB!');
                 return;
             }
-            if (!file.type.startsWith('image/')) {
-                setFormError('File đã chọn không phải là định dạng hình ảnh!');
+            if (!file.type.startsWith('image/') && !file.name.match(/\.(jpe?g|png|webp|gif|avif|svg|bmp|ico|heic|heif|jfif)$/i)) {
+                setFormError('File đã chọn không phải là định dạng hình ảnh hợp lệ!');
                 return;
             }
 
@@ -206,6 +248,12 @@ const MovieManagement = () => {
             setBannerFile(file);
             setBannerPreview(URL.createObjectURL(file));
         }
+    };
+
+    const handleBannerUrlChange = (e) => {
+        const url = e.target.value;
+        setBannerUrl(url);
+        setBannerPreview(url.trim() || null);
     };
 
     const handleGenreToggle = (genreId) => {
@@ -244,23 +292,35 @@ const MovieManagement = () => {
             return;
         }
 
-        if (!isEditing && !posterFile) {
-            setFormError('Vui lòng tải lên ảnh Poster cho bộ phim mới!');
-            return;
+        if (!isEditing) {
+            if (posterMode === 'FILE' && !posterFile) {
+                setFormError('Vui lòng tải lên ảnh Poster cho bộ phim mới!');
+                return;
+            }
+            if (posterMode === 'URL' && !posterUrl.trim()) {
+                setFormError('Vui lòng nhập đường dẫn URL ảnh Poster cho bộ phim mới!');
+                return;
+            }
         }
 
         try {
             const data = new FormData();
 
+            const moviePayload = {
+                ...formData,
+                posterUrl: posterMode === 'URL' && posterUrl.trim() ? posterUrl.trim() : null,
+                bannerUrl: bannerMode === 'URL' && bannerUrl.trim() ? bannerUrl.trim() : null,
+            };
+
             // Append movie JSON blob
-            const movieBlob = new Blob([JSON.stringify(formData)], { type: 'application/json' });
+            const movieBlob = new Blob([JSON.stringify(moviePayload)], { type: 'application/json' });
             data.append('movie', movieBlob);
 
-            if (posterFile) {
+            if (posterMode === 'FILE' && posterFile) {
                 data.append('posterFile', posterFile);
             }
 
-            if (bannerFile) {
+            if (bannerMode === 'FILE' && bannerFile) {
                 data.append('bannerFile', bannerFile);
             }
 
@@ -276,6 +336,7 @@ const MovieManagement = () => {
             setFormError(err.response?.data?.message || 'Có lỗi xảy ra khi lưu thông tin phim!');
         }
     };
+
 
     const handleDelete = async (id, title) => {
         if (window.confirm(`Bạn có chắc chắn muốn xóa bộ phim "${title}"?`)) {
@@ -405,9 +466,7 @@ const MovieManagement = () => {
                                         </tr>
                                     ) : (
                                         movies.map((movie) => {
-                                            const posterUrl = movie.posterPath?.startsWith('http')
-                                                ? movie.posterPath
-                                                : `http://localhost:8080${movie.posterPath}`;
+                                            const posterUrl = getFullImageUrl(movie.posterPath);
 
                                             return (
                                                 <tr key={movie.id} className="hover:bg-blue-50/30 transition-colors">
@@ -418,7 +477,8 @@ const MovieManagement = () => {
                                                             alt={movie.title}
                                                             className="w-12 h-16 object-cover rounded-md shadow-sm border border-gray-200"
                                                             onError={(e) => {
-                                                                e.target.src = 'https://via.placeholder.com/150x200?text=No+Poster';
+                                                                e.target.onerror = null;
+                                                                e.target.src = PLACEHOLDER_POSTER;
                                                             }}
                                                         />
                                                     </td>
@@ -744,60 +804,198 @@ const MovieManagement = () => {
                                 </div>
                             </div>
 
-                            {/* Poster & Banner Upload */}
+                            {/* Poster & Banner Dual-Mode (Upload / URL) */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Ảnh Poster Phim (2:3) {!isEditing && <span className="text-red-500">*</span>}
-                                    </label>
-                                    <div className="flex items-center gap-4">
-                                        <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
-                                            <Upload className="w-5 h-5 text-blue-500 mb-1" />
-                                            <span className="text-xs text-gray-600 font-medium">
-                                                {posterFile ? posterFile.name : 'Chọn ảnh poster (2:3)'}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WEBP (Max 5MB)</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleFileChange}
-                                                className="hidden"
-                                            />
+                                {/* Poster Input */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-sm font-semibold text-gray-700">
+                                            Ảnh Poster (2:3) {!isEditing && <span className="text-red-500">*</span>}
                                         </label>
-
-                                        {posterPreview && (
-                                            <div className="relative w-14 h-20 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs">
-                                                <img src={posterPreview} alt="Poster Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                        )}
+                                        <div className="inline-flex rounded-lg p-0.5 bg-gray-100 border border-gray-200 text-xs">
+                                            <button
+                                                type="button"
+                                                onClick={() => setPosterMode('FILE')}
+                                                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                                                    posterMode === 'FILE'
+                                                        ? 'bg-white text-blue-600 shadow-xs'
+                                                        : 'text-gray-600 hover:text-gray-900'
+                                                }`}
+                                            >
+                                                <Upload size={11} className="inline mr-1" /> Tải file
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setPosterMode('URL')}
+                                                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                                                    posterMode === 'URL'
+                                                        ? 'bg-white text-blue-600 shadow-xs'
+                                                        : 'text-gray-600 hover:text-gray-900'
+                                                }`}
+                                            >
+                                                <LinkIcon size={11} className="inline mr-1" /> Dán link URL
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    {posterMode === 'FILE' ? (
+                                        <div className="flex items-center gap-4">
+                                            <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
+                                                <Upload className="w-5 h-5 text-blue-500 mb-1" />
+                                                <span className="text-xs text-gray-600 font-medium truncate max-w-[200px]">
+                                                    {posterFile ? posterFile.name : 'Chọn ảnh poster (2:3)'}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 mt-0.5">
+                                                    Mọi định dạng ảnh (PNG, JPG, WEBP, AVIF, GIF, SVG... Max 10MB)
+                                                </span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,.avif,.webp,.svg,.png,.jpg,.jpeg,.gif,.bmp,.ico,.heic,.jfif"
+                                                    onChange={handleFileChange}
+                                                    className="hidden"
+                                                />
+                                            </label>
+
+                                            {posterPreview && (
+                                                <div className="relative w-14 h-20 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs bg-gray-50">
+                                                    <img
+                                                        src={posterPreview}
+                                                        alt="Poster Preview"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = PLACEHOLDER_POSTER;
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex-1">
+                                                <input
+                                                    type="url"
+                                                    placeholder="https://chieuphimquocgia.com.vn/... hoặc link ảnh bất kỳ"
+                                                    value={posterUrl}
+                                                    onChange={handlePosterUrlChange}
+                                                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                                                />
+                                                <span className="text-[10px] text-gray-400 mt-1 block">
+                                                    Dán đường link ảnh từ internet/CDN hoặc nguồn cào
+                                                </span>
+                                            </div>
+
+                                            {posterPreview && (
+                                                <div className="relative w-14 h-20 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs bg-gray-50">
+                                                    <img
+                                                        src={posterPreview}
+                                                        alt="Poster Preview"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = PLACEHOLDER_POSTER;
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                                        Ảnh Banner Ngang (16:9 - Hero/Carousel)
-                                    </label>
-                                    <div className="flex items-center gap-4">
-                                        <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all text-center">
-                                            <Upload className="w-5 h-5 text-purple-500 mb-1" />
-                                            <span className="text-xs text-gray-600 font-medium">
-                                                {bannerFile ? bannerFile.name : 'Chọn ảnh banner (16:9)'}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400 mt-0.5">PNG, JPG, WEBP (Max 5MB)</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleBannerFileChange}
-                                                className="hidden"
-                                            />
+                                {/* Banner Input */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label className="block text-sm font-semibold text-gray-700">
+                                            Ảnh Banner Ngang (16:9)
                                         </label>
-
-                                        {bannerPreview && (
-                                            <div className="relative w-24 h-14 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs">
-                                                <img src={bannerPreview} alt="Banner Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                        )}
+                                        <div className="inline-flex rounded-lg p-0.5 bg-gray-100 border border-gray-200 text-xs">
+                                            <button
+                                                type="button"
+                                                onClick={() => setBannerMode('FILE')}
+                                                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                                                    bannerMode === 'FILE'
+                                                        ? 'bg-white text-purple-600 shadow-xs'
+                                                        : 'text-gray-600 hover:text-gray-900'
+                                                }`}
+                                            >
+                                                <Upload size={11} className="inline mr-1" /> Tải file
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setBannerMode('URL')}
+                                                className={`px-2 py-0.5 rounded-md font-medium transition-all cursor-pointer ${
+                                                    bannerMode === 'URL'
+                                                        ? 'bg-white text-purple-600 shadow-xs'
+                                                        : 'text-gray-600 hover:text-gray-900'
+                                                }`}
+                                            >
+                                                <LinkIcon size={11} className="inline mr-1" /> Dán link URL
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    {bannerMode === 'FILE' ? (
+                                        <div className="flex items-center gap-4">
+                                            <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-purple-500 p-3 rounded-lg cursor-pointer bg-gray-50 hover:bg-purple-50/30 transition-all text-center">
+                                                <Upload className="w-5 h-5 text-purple-500 mb-1" />
+                                                <span className="text-xs text-gray-600 font-medium truncate max-w-[200px]">
+                                                    {bannerFile ? bannerFile.name : 'Chọn ảnh banner (16:9)'}
+                                                </span>
+                                                <span className="text-[10px] text-gray-400 mt-0.5">
+                                                    Mọi định dạng ảnh (PNG, JPG, WEBP, AVIF, GIF, SVG... Max 10MB)
+                                                </span>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*,.avif,.webp,.svg,.png,.jpg,.jpeg,.gif,.bmp,.ico,.heic,.jfif"
+                                                    onChange={handleBannerFileChange}
+                                                    className="hidden"
+                                                />
+                                            </label>
+
+                                            {bannerPreview && (
+                                                <div className="relative w-24 h-14 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs bg-gray-50">
+                                                    <img
+                                                        src={bannerPreview}
+                                                        alt="Banner Preview"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = PLACEHOLDER_POSTER;
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex-1">
+                                                <input
+                                                    type="url"
+                                                    placeholder="https://chieuphimquocgia.com.vn/... hoặc link banner bất kỳ"
+                                                    value={bannerUrl}
+                                                    onChange={handleBannerUrlChange}
+                                                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-purple-500 outline-none"
+                                                />
+                                                <span className="text-[10px] text-gray-400 mt-1 block">
+                                                    Dán đường link banner từ internet/CDN hoặc nguồn cào
+                                                </span>
+                                            </div>
+
+                                            {bannerPreview && (
+                                                <div className="relative w-24 h-14 border border-gray-200 rounded-lg overflow-hidden shrink-0 shadow-xs bg-gray-50">
+                                                    <img
+                                                        src={bannerPreview}
+                                                        alt="Banner Preview"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = PLACEHOLDER_POSTER;
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
