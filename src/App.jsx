@@ -13,7 +13,6 @@ import ProductManagement from './pages/ProductManagement';
 import BookingManagement from './pages/BookingManagement';
 import ArticleManagement from './pages/ArticleManagement';
 import ReviewManagement from './pages/ReviewManagement';
-import ChatSessionManagement from './pages/ChatSessionManagement';
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
@@ -39,7 +38,6 @@ function App() {
           <Route path="products" element={<ProductManagement />} />
           <Route path="articles" element={<ArticleManagement />} />
           <Route path="reviews" element={<ReviewManagement />} />
-          <Route path="chat-sessions" element={<ChatSessionManagement />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

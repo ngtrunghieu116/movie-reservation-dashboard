@@ -15,8 +15,7 @@ import {
     Coffee,
     Ticket,
     FileText,
-    MessageSquare,
-    Bot
+    MessageSquare
 } from 'lucide-react';
 
 const AdminLayout = () => {
@@ -41,7 +40,6 @@ const AdminLayout = () => {
         { path: '/products', icon: <Coffee size={20} />, label: 'Bắp & Nước F&B' },
         { path: '/articles', icon: <FileText size={20} />, label: 'Tin Tức & Bài Viết' },
         { path: '/reviews', icon: <MessageSquare size={20} />, label: 'Đánh Giá & Nhận Xét' },
-        { path: '/chat-sessions', icon: <Bot size={20} />, label: 'Hỏi Đáp & Chat AI' },
         { path: '/users', icon: <Users size={20} />, label: 'Người Dùng' },
     ];
 
