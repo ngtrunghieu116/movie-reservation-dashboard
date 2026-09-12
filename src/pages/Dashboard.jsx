@@ -1,133 +1,252 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Film, Calendar, Building2, Users, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import axiosClient from '../api/axiosClient';
+import React, { useState, useEffect, useCallback } from 'react';
+import './Dashboard.css';
+import statisticsApi from '../api/statisticsApi';
+import StatCard from '../components/dashboard/StatCard';
+import RevenueTicketChart from '../components/dashboard/RevenueTicketChart';
+import MovieShareChart from '../components/dashboard/MovieShareChart';
+import TopMoviesTable from '../components/dashboard/TopMoviesTable';
+import RoomPerformanceTable from '../components/dashboard/RoomPerformanceTable';
 
+// ─── Helpers ──────────────────────────────────────────────────
+const today = () => new Date().toISOString().substring(0, 10);
+const daysAgo = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().substring(0, 10);
+};
+
+const fmtVND = (v) =>
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(Number(v));
+
+const PRESETS = [
+    { label: '7 ngày', value: 7 },
+    { label: '30 ngày', value: 30 },
+    { label: '90 ngày', value: 90 },
+];
+
+// ─── Export CSV (UTF-8 BOM) ───────────────────────────────────
+const exportCSV = (rows, filename) => {
+    if (!rows || rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const csvContent = [
+        headers.join(','),
+        ...rows.map((r) =>
+            headers.map((h) => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(',')
+        ),
+    ].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+// ─── Main Dashboard Component ─────────────────────────────────
 const Dashboard = () => {
-    const [stats, setStats] = useState({
-        moviesCount: 0,
-        showtimesCount: 0,
-        theatersCount: 0,
-        usersCount: 0
-    });
-    const [isLoading, setIsLoading] = useState(true);
+    const [dateFilter, setDateFilter] = useState(today());
+    const [fromDate, setFromDate] = useState(daysAgo(29));
+    const [toDate, setToDate] = useState(today());
+    const [preset, setPreset] = useState(30);
 
-    useEffect(() => {
-        const fetchDashboardStats = async () => {
-            setIsLoading(true);
-            try {
-                const [moviesRes, showtimesRes, theatersRes, usersRes] = await Promise.allSettled([
-                    axiosClient.get('/admin/movies?page=0&size=1'),
-                    axiosClient.get('/admin/showtimes?page=0&size=1'),
-                    axiosClient.get('/admin/theaters?page=0&size=1'),
-                    axiosClient.get('/admin/users?page=0&size=1')
-                ]);
+    const [overview, setOverview]             = useState(null);
+    const [dailyData, setDailyData]           = useState([]);
+    const [movieShare, setMovieShare]         = useState([]);
+    const [topMovies, setTopMovies]           = useState([]);
+    const [roomPerf, setRoomPerf]             = useState([]);
 
-                setStats({
-                    moviesCount: moviesRes.status === 'fulfilled' ? (moviesRes.value?.totalElements ?? moviesRes.value?.data?.totalElements ?? 0) : 0,
-                    showtimesCount: showtimesRes.status === 'fulfilled' ? (showtimesRes.value?.totalElements ?? showtimesRes.value?.data?.totalElements ?? 0) : 0,
-                    theatersCount: theatersRes.status === 'fulfilled' ? (theatersRes.value?.totalElements ?? theatersRes.value?.data?.totalElements ?? 0) : 0,
-                    usersCount: usersRes.status === 'fulfilled' ? (usersRes.value?.totalElements ?? usersRes.value?.data?.totalElements ?? 0) : 0
-                });
-            } catch (err) {
-                console.error('Failed to load dashboard stats:', err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    const [loadingOverview, setLoadingOverview]   = useState(false);
+    const [loadingDaily, setLoadingDaily]         = useState(false);
+    const [loadingMovies, setLoadingMovies]       = useState(false);
+    const [loadingRooms, setLoadingRooms]         = useState(false);
 
-        fetchDashboardStats();
-    }, []);
+    const [error, setError] = useState(null);
 
-    const statCards = [
-        { label: 'Phim Chiếu', count: stats.moviesCount, icon: Film, link: '/movies', color: 'bg-red-500' },
-        { label: 'Suất Chiếu', count: stats.showtimesCount, icon: Calendar, link: '/showtimes', color: 'bg-amber-500' },
-        { label: 'Cơ Sở Rạp', count: stats.theatersCount, icon: Building2, link: '/theaters', color: 'bg-emerald-500' },
-        { label: 'Người Dùng', count: stats.usersCount, icon: Users, link: '/users', color: 'bg-blue-500' },
+    // ── Fetch Overview (KPI cards for selected day) ─────────
+    const fetchOverview = useCallback(async () => {
+        setLoadingOverview(true);
+        try {
+            const data = await statisticsApi.getOverview(dateFilter);
+            setOverview(data);
+        } catch (e) {
+            console.error('Overview fetch failed:', e);
+            setError('Không thể tải dữ liệu tổng quan. Vui lòng kiểm tra kết nối.');
+        } finally {
+            setLoadingOverview(false);
+        }
+    }, [dateFilter]);
+
+    // ── Fetch Charts & Tables (range-based) ─────────────────
+    const fetchRangeData = useCallback(async () => {
+        setLoadingDaily(true);
+        setLoadingMovies(true);
+        setLoadingRooms(true);
+        setError(null);
+
+        try {
+            const [daily, share, top, rooms] = await Promise.allSettled([
+                statisticsApi.getDailyRevenue(fromDate, toDate),
+                statisticsApi.getMovieShare(fromDate, toDate),
+                statisticsApi.getTopMovies(fromDate, toDate, 10),
+                statisticsApi.getRoomPerformance(fromDate, toDate),
+            ]);
+
+            if (daily.status === 'fulfilled')  setDailyData(daily.value   ?? []);
+            if (share.status === 'fulfilled')  setMovieShare(share.value  ?? []);
+            if (top.status === 'fulfilled')    setTopMovies(top.value     ?? []);
+            if (rooms.status === 'fulfilled')  setRoomPerf(rooms.value    ?? []);
+        } catch (e) {
+            console.error('Range data fetch failed:', e);
+            setError('Không thể tải dữ liệu biểu đồ.');
+        } finally {
+            setLoadingDaily(false);
+            setLoadingMovies(false);
+            setLoadingRooms(false);
+        }
+    }, [fromDate, toDate]);
+
+    // ── Preset handler ───────────────────────────────────────
+    const applyPreset = (days) => {
+        setPreset(days);
+        setFromDate(daysAgo(days - 1));
+        setToDate(today());
+    };
+
+    useEffect(() => { fetchOverview(); }, [fetchOverview]);
+    useEffect(() => { fetchRangeData(); }, [fetchRangeData]);
+
+    // ── KPI Card definitions ──────────────────────────────────
+    const kpiCards = [
+        {
+            label: 'Doanh thu hôm nay',
+            value: overview ? fmtVND(overview.todayRevenue) : '—',
+            subLabel: `Tháng này: ${overview ? fmtVND(overview.currentMonthRevenue) : '—'}`,
+            accent: true,
+        },
+        {
+            label: 'Vé bán hôm nay',
+            value: overview ? Number(overview.todayTickets).toLocaleString('vi-VN') : '—',
+            subLabel: `Tổng: ${overview ? Number(overview.totalTickets).toLocaleString('vi-VN') : '—'} vé`,
+        },
+        {
+            label: 'Khách hàng mới hôm nay',
+            value: overview ? Number(overview.todayNewUsers).toLocaleString('vi-VN') : '—',
+            subLabel: `Tổng: ${overview ? Number(overview.totalUsers).toLocaleString('vi-VN') : '—'} người`,
+        },
+        {
+            label: 'Suất chiếu hôm nay',
+            value: overview ? Number(overview.todayShowtimes).toLocaleString('vi-VN') : '—',
+            subLabel: `Phim đang chiếu tháng này: ${overview ? Number(overview.activeMovies).toLocaleString('vi-VN') : '—'}`,
+        },
     ];
 
     return (
-        <div className="space-y-8 animate-fadeIn">
-            {/* Top Banner Header */}
-            <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-red-950 p-8 text-white shadow-xl overflow-hidden border border-slate-800">
-                <div className="relative z-10 max-w-2xl space-y-3">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-red-600/30 border border-red-500/40 rounded-full text-red-300 text-xs font-bold uppercase tracking-wider">
-                        <ShieldCheck className="w-4 h-4 text-red-400" />
-                        <span>Hệ Thống Quản Trị CineMind</span>
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                        Chào Mừng Trở Lại, <span className="text-red-500">Admin</span>
-                    </h1>
+        <div className="dashboard">
+            {/* ── Page Header ─────────────────────────────── */}
+            <div className="dashboard__header">
+                <div>
+                    <h1 className="dashboard__title">Thống kê &amp; Phân tích</h1>
+                    <p className="dashboard__desc">Tổng quan hoạt động kinh doanh CineMind</p>
+                </div>
+
+                {/* Day picker for KPI */}
+                <div className="dashboard__controls">
+                    <label className="dashboard__date-label">Ngày thống kê:</label>
+                    <input
+                        id="kpi-date-picker"
+                        type="date"
+                        className="dashboard__date-input"
+                        value={dateFilter}
+                        max={today()}
+                        onChange={(e) => setDateFilter(e.target.value)}
+                    />
                 </div>
             </div>
 
-            {/* Stat Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {statCards.map((card, idx) => {
-                    const IconComponent = card.icon;
-                    return (
-                        <Link
-                            key={idx}
-                            to={card.link}
-                            className="group bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-red-300 transition-all duration-300 flex items-center justify-between"
+            {error && (
+                <div className="dashboard__error" role="alert">{error}</div>
+            )}
+
+            {/* ── KPI Cards ───────────────────────────────── */}
+            <div className="dashboard__kpi-grid">
+                {kpiCards.map((c, i) => (
+                    <StatCard
+                        key={i}
+                        label={c.label}
+                        value={c.value}
+                        subLabel={c.subLabel}
+                        accent={c.accent}
+                        loading={loadingOverview}
+                    />
+                ))}
+            </div>
+
+            {/* ── Range Filter ─────────────────────────────── */}
+            <div className="dashboard__range-bar">
+                <span className="dashboard__range-label">Khoảng thời gian biểu đồ:</span>
+
+                <div className="dashboard__preset-group">
+                    {PRESETS.map((p) => (
+                        <button
+                            key={p.value}
+                            id={`preset-${p.value}d`}
+                            className={`dashboard__preset-btn${preset === p.value ? ' active' : ''}`}
+                            onClick={() => applyPreset(p.value)}
                         >
-                            <div className="space-y-1">
-                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                    {card.label}
-                                </span>
-                                <h3 className="text-3xl font-extrabold text-slate-900 group-hover:text-red-600 transition-colors">
-                                    {isLoading ? '...' : card.count}
-                                </h3>
-                            </div>
-                            <div className={`w-13 h-13 ${card.color} text-white rounded-2xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition duration-300`}>
-                                <IconComponent className="w-6 h-6" />
-                            </div>
-                        </Link>
-                    );
-                })}
+                            {p.label}
+                        </button>
+                    ))}
+                </div>
+
+                <input
+                    id="range-from"
+                    type="date"
+                    className="dashboard__date-input"
+                    value={fromDate}
+                    max={toDate}
+                    onChange={(e) => { setFromDate(e.target.value); setPreset(null); }}
+                />
+                <span className="dashboard__range-sep">—</span>
+                <input
+                    id="range-to"
+                    type="date"
+                    className="dashboard__date-input"
+                    value={toDate}
+                    max={today()}
+                    onChange={(e) => { setToDate(e.target.value); setPreset(null); }}
+                />
+
+                <button
+                    id="export-csv-btn"
+                    className="dashboard__export-btn"
+                    onClick={() =>
+                        exportCSV(
+                            topMovies.map((m) => ({
+                                'Tên phim': m.movieTitle,
+                                'Vé bán': m.ticketsSold,
+                                'Đặt vé': m.bookingCount,
+                                'Doanh thu (VND)': m.revenue,
+                                'Tỷ lệ (%)': m.revenuePercentage?.toFixed(2),
+                            })),
+                            `cinemind_top_movies_${fromDate}_${toDate}.csv`
+                        )
+                    }
+                >
+                    Xuất CSV
+                </button>
             </div>
 
-            {/* Quick Actions Shortcuts */}
-            <div className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2.5">
-                    <div className="w-2 h-6 bg-red-600 rounded-full" />
-                    <span>Lối Tắt Quản Lý Nhanh</span>
-                </h3>
+            {/* ── Charts Row ───────────────────────────────── */}
+            <div className="dashboard__charts-grid">
+                <RevenueTicketChart data={dailyData} loading={loadingDaily} />
+                <MovieShareChart    data={movieShare} loading={loadingMovies} />
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Link
-                        to="/movies"
-                        className="p-5 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-800 hover:text-red-700 font-semibold transition group flex items-center justify-between"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Film className="w-5 h-5 text-red-600" />
-                            <span>Quản Lý Danh Sách Phim</span>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </Link>
-
-                    <Link
-                        to="/showtimes"
-                        className="p-5 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-800 hover:text-red-700 font-semibold transition group flex items-center justify-between"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Calendar className="w-5 h-5 text-red-600" />
-                            <span>Tạo Lịch Chiếu Mới</span>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </Link>
-
-                    <Link
-                        to="/theaters"
-                        className="p-5 rounded-2xl bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-800 hover:text-red-700 font-semibold transition group flex items-center justify-between"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Building2 className="w-5 h-5 text-red-600" />
-                            <span>Quản Lý Phòng Chiếu & Ghế</span>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </Link>
-                </div>
+            {/* ── Tables Row ───────────────────────────────── */}
+            <div className="dashboard__tables-grid">
+                <TopMoviesTable      data={topMovies} loading={loadingMovies} />
+                <RoomPerformanceTable data={roomPerf}  loading={loadingRooms} />
             </div>
         </div>
     );
